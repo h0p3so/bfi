@@ -1,16 +1,3 @@
-#               ____
-#             /____ `\
-#            ||_  _`\ \
-#      .-.   `|O, O  ||		art by:		TBH'99
-#      | |    (/    -)\		coded by:	x13nsa
-#      | |    |`-'` |./		last update:	Jul 23 2015
-#   __/  |    | _/  |
-#  (___) \.  _.\__. `\___
-#  (___)  )\/  \    _/   ~\.
-#  (___) . \   `--  _      |
-#   (__)-    ,/        (   |
-#        `--~|         |   |	Tabs: 8
-#            |         |   |
 .section	.rodata
 	.usage_msg:		.string	"\tusage: unfuck [file]\n"
 	.usage_len:		.long	22
