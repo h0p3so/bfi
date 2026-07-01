@@ -1,3 +1,5 @@
 brainfuck intepreter
 $ make
 $ ./bfi programs/life.b
+
+whattt??
