@@ -1,27 +1,39 @@
+#define STDIN_FD           0
+#define STDOUT_FD          1
+#define STDERR_FD          2
+
 #define FATAL_USAGE_STATUS 1
 
 .section .rodata
-	.fatal_usage_msg: .string "bfi: bad usage\n"
-	.fatal_usage_len: .quad    15
+	.usage_msg: .string "$ bfi [filename] [opts: O (optimize) | W (wrap memory) | H (help)]\n"
+	.usage_len: .quad   67
 
 .section .text
 .globl _start
 
-.macro error msg, len, status
+.macro DISPLAY fd, msg, len
 	movq	$1, %rax
 	movq	$2, %rdi
 	leaq	\msg, %rsi
 	movq	\len, %rdx
 	syscall
+.endm
+
+.macro EXIT status
 	movq	$60, %rax
 	movq	$\status, %rdi
 	syscall
 .endm
 
+
 _start:
 	movq	(%rsp), %rax
 	cmpq	$1, %rax
-	je	._fatal_bad_usage	
+	je	._usage
+	cmpq	$2, %rax
+	je	._go
+
+._go:
 	# stack frame ----------------------
 	#
 	#
@@ -37,5 +49,7 @@ _start:
 	movq	$60, %rax
 	movq	$60, %rdi
 	syscall
-._fatal_bad_usage:
-	error	.fatal_usage_msg(%rip), .fatal_usage_len(%rip), FATAL_USAGE_STATUS
+._usage:
+	DISPLAY STDERR_FD, .usage_msg(%rip), .usage_len(%rip)
+	EXIT FATAL_USAGE_STATUS
+
