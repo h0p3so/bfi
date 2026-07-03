@@ -31,7 +31,6 @@
 	.fatal_bad_read_msg: .string "bfi: error while reading\n"
 	.fatal_bad_read_len: .quad   25
 
-
 .section .text
 .globl _start
 
@@ -49,11 +48,10 @@
 	syscall
 .endm
 
-
 _start:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$80, %rsp
+	subq	$32, %rsp
 	#
 	# checking usage
 	#
@@ -151,13 +149,10 @@ _start:
 	movl	MAIN_OFFSET_FILE_FD(%rbp), %edi
 	movq	$3, %rax
 	syscall
-.lexer:
-	movq	$1, %rax
-	movq	$1, %rdi
-	movq	MAIN_OFFSET_BF_SRC(%rbp), %rsi
-	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rdx
-	syscall
-
+.callexer:
+	movq	MAIN_OFFSET_BF_SRC(%rbp), %rdi
+	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rsi
+	call	lexer
 ._fini:
 	#
 	# unmap syscall
@@ -166,7 +161,7 @@ _start:
 	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rsi
 	movq	$11, %rax
 	syscall
-
+	#
 	movq	$60, %rax
 	movq	$0, %rdi
 	syscall
