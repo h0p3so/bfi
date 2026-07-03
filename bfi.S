@@ -1,11 +1,18 @@
-#define STDIN_FD             0
-#define STDOUT_FD            1
-#define STDERR_FD            2
+#define STDIN_FD  0
+#define STDOUT_FD 1
+#define STDERR_FD 2
 
 #define EXIT_STATUS_USAGE    0
+#define EXIT_STATUS_BAD_FILE 1
+#define EXIT_STATUS_BAD_MEMO 2
+#define EXIT_STATUS_BAD_READ 3
 
-#define MAIN_OFFSET_O_FLAG   -2
-#define MAIN_OFFSET_W_FLAG   -4
+#define MAIN_OFFSET_O_FLAG    -2
+#define MAIN_OFFSET_W_FLAG    -4
+#define MAIN_OFFSET_FILENAME -12
+#define MAIN_OFFSET_FILE_FD  -16
+#define MAIN_OFFSET_FILE_SZ  -24
+#define MAIN_OFFSET_BF_SRC   -32
 
 #define FLAG_HELP            'H'
 #define FLAG_OPTIMIZE        'O'
@@ -14,6 +21,16 @@
 .section .rodata
 	.usage_msg: .string "$ bfi [filename] [opts: O (optimize) | W (wrap memory) | H (help)]\n"
 	.usage_len: .quad   67
+
+	.fatal_bad_file_msg: .string "bfi: file provided does not exist\n"
+	.fatal_bad_file_len: .quad   34
+
+	.fatal_bad_memo_msg: .string "bfi: cannot allocate space\n"
+	.fatal_bad_memo_len: .quad   27
+
+	.fatal_bad_read_msg: .string "bfi: error while reading\n"
+	.fatal_bad_read_len: .quad   25
+
 
 .section .text
 .globl _start
@@ -34,21 +51,9 @@
 
 
 _start:
-	# stack frame ----------------------
-	# -2(%rip): MAIN_OFFSET_O_FLAG
-	# -4(%rip): MAIN_OFFSET_O_FLAG
-	#
-	#
-	#
-	#
-	#
-	#
-	#
-	#
-	#
 	pushq	%rbp
 	movq	%rsp, %rbp
-	subq	$16, %rsp
+	subq	$80, %rsp
 	#
 	# checking usage
 	#
@@ -80,11 +85,100 @@ _start:
 	incq	%r8
 	jmp	.cli_parsing
 .init:
+	movq	24(%rbp), %rax
+	movq	%rax, MAIN_OFFSET_FILENAME(%rbp)
+.read_file:
+	#
+	# access syscall
+	#
+	movq	MAIN_OFFSET_FILENAME(%rbp), %rdi
+	xorq	%rsi, %rsi
+	movq	$21, %rax
+	syscall
+	testq	%rax, %rax
+	jnz	._fatal_bad_file
+	#
+	# open syscall
+	#
+	movq	MAIN_OFFSET_FILENAME(%rbp), %rdi
+	xorq	%rsi, %rsi
+	movq	$2, %rax
+	syscall
+	movl	%eax, MAIN_OFFSET_FILE_FD(%rbp)
+	#
+	# lseek syscall: getting file's size
+	#
+	movl	MAIN_OFFSET_FILE_FD(%rbp), %edi
+	xorq	%rsi, %rsi
+	movq	$2, %rdx
+	movq	$8, %rax
+	syscall
+	movq	%rax, MAIN_OFFSET_FILE_SZ(%rbp)
+	#
+	movl	MAIN_OFFSET_FILE_FD(%rbp), %edi
+	xorq	%rsi, %rsi
+	xorq	%rdx, %rdx
+	movq	$8, %rax
+	syscall
+	#
+	# nmap syscall: allocating file content
+	#
+	xorq	%rdi, %rdi
+	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rsi
+	movq	$1, %rsi
+	movq	$3, %rdx
+	movq	$34, %r10
+	movq	$-1, %r8
+	xorq	%r9, %r9
+	movq	$9, %rax
+	syscall
+	cmpq	$-1, %rax
+	je	._fatal_bad_memo
+	movq	%rax, MAIN_OFFSET_BF_SRC(%rbp)
+	#
+	# read syscall
+	#
+	movl	MAIN_OFFSET_FILE_FD(%rbp), %edi
+	movq	MAIN_OFFSET_BF_SRC(%rbp), %rsi
+	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rdx
+	xorq	%rax, %rax
+	syscall
+	cmpq	$-1, %rax
+	je	._fatal_bad_read
+	#
+	# close syscall
+	#
+	movl	MAIN_OFFSET_FILE_FD(%rbp), %edi
+	movq	$3, %rax
+	syscall
+.lexer:
+	movq	$1, %rax
+	movq	$1, %rdi
+	movq	MAIN_OFFSET_BF_SRC(%rbp), %rsi
+	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rdx
+	syscall
 
 ._fini:
+	#
+	# unmap syscall
+	#
+	leaq	MAIN_OFFSET_BF_SRC(%rbp), %rdi
+	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rsi
+	movq	$11, %rax
+	syscall
+
 	movq	$60, %rax
 	movq	$0, %rdi
 	syscall
 ._usage:
-	DISPLAY STDERR_FD, .usage_msg(%rip), .usage_len(%rip)
+	DISPLAY STDOUT_FD, .usage_msg(%rip), .usage_len(%rip)
 	EXIT EXIT_STATUS_USAGE
+._fatal_bad_file:
+	DISPLAY STDERR_FD, .fatal_bad_file_msg(%rip), .fatal_bad_file_len(%rip)
+	EXIT EXIT_STATUS_BAD_FILE
+._fatal_bad_memo:
+	DISPLAY STDERR_FD, .fatal_bad_memo_msg(%rip), .fatal_bad_memo_len(%rip)
+	EXIT EXIT_STATUS_BAD_MEMO
+._fatal_bad_read:
+	DISPLAY STDERR_FD, .fatal_bad_read_msg(%rip), .fatal_bad_read_len(%rip)
+	EXIT EXIT_STATUS_BAD_READ
