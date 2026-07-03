@@ -5,6 +5,7 @@ TINY_PF_FLAGS =
 LDFLAGS = -nostartfiles
 EXECUTABLE = bfi
 OBJS = bfi.o libs/tiny-pf.o libs/xvargs.o
+DEBUG = -g
 
 .PHONY: all clean
 
@@ -14,7 +15,7 @@ $(EXECUTABLE): $(OBJS)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 bfi.o: bfi.S
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@ $(DEBUG)
 
 libs/xvargs.o: libs/xvargs.S
 	$(CC) $(CFLAGS) $(XVARGS_FLAGS) $< -o $@
