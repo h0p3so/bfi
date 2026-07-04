@@ -10,6 +10,7 @@
 #define EXIT_STATUS_S_OVERFL 5
 #define EXIT_STATUS_UNOPENED 6
 #define EXIT_STATUS_UNCLOSED 7
+#define EXIT_STATUS_UNREACHA 8
 
 
 #define GLOBL_TOKEN_ADD '+'
@@ -35,6 +36,8 @@
 
 #define GLOBL_TOTAL_TOKENS 1024
 #define GLOBL_TOKEN_SIZE   18
+
+#define GLOBL_FLAG_SET 1
 
 .macro DISPLAY fd, msg, len
 	movq	$1, %rax

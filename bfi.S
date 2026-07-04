@@ -1,20 +1,16 @@
 #define MAIN_OFFSET_S_FLAG        -2
-#define MAIN_OFFSET_W_FLAG        -4
-#define MAIN_OFFSET_I_FLAG        -6
-#define MAIN_OFFSET_FILENAME     -14
-#define MAIN_OFFSET_FILE_FD      -18
-#define MAIN_OFFSET_FILE_SZ      -26
-#define MAIN_OFFSET_BF_SRC       -34
-#define MAIN_OFFSET_NUM_TOKENS   -42
+#define MAIN_OFFSET_I_FLAG        -4
+#define MAIN_OFFSET_FILENAME     -12
+#define MAIN_OFFSET_FILE_FD      -16
+#define MAIN_OFFSET_FILE_SZ      -24
+#define MAIN_OFFSET_BF_SRC       -32
+#define MAIN_OFFSET_NUM_TOKENS   -40
 
 #define FLAG_SAFE                'S'
-#define FLAG_WRAP                'W'
 #define FLAG_INFO                'I'
 
-#define FLAG_SET                 1
-
 .section .rodata
-	.usage_msg: .string "$ bfi [empty] | <filename> [exclusive opts: W (wrap memory) | I (info) | S (safe)\n"
+	.usage_msg: .string "$ bfi [empty] | <filename> [exclusive opts: I (info) | S (safe)\n"
 	.usage_len: .quad   82
 
 	.fatal_bad_file_msg: .string "bfi: file provided does not exist\n"
@@ -50,22 +46,17 @@ _start:
 	movq	16(%rbp, %r8, 8), %rax
 	movzbl	(%rax), %edi
 	#
-	cmpb	$FLAG_WRAP, %dil
-	je	.cli_parsing_W
 	cmpb	$FLAG_INFO, %dil
 	je	.cli_parsing_I
 	cmpb	$FLAG_SAFE, %dil
 	je	.cli_parsing_S
 	#
 	jmp	.cli_parsing_loop
-.cli_parsing_W:
-	movw	$FLAG_SET, MAIN_OFFSET_W_FLAG(%rbp)
-	jmp	.cli_parsing_loop
 .cli_parsing_I:
-	movw	$FLAG_SET, MAIN_OFFSET_I_FLAG(%rbp)
+	movw	$GLOBL_FLAG_SET, MAIN_OFFSET_I_FLAG(%rbp)
 	jmp	.cli_parsing_loop
 .cli_parsing_S:
-	movw	$FLAG_SET, MAIN_OFFSET_S_FLAG(%rbp)
+	movw	$GLOBL_FLAG_SET, MAIN_OFFSET_S_FLAG(%rbp)
 	jmp	.cli_parsing_loop
 .cli_parsing_loop:
 	incq	%r8
@@ -145,14 +136,17 @@ _start:
 	#
 	xorq	%rax, %rax
 	movw	MAIN_OFFSET_I_FLAG(%rbp), %ax
-	cmpw	$FLAG_SET, %ax
+	cmpw	$GLOBL_FLAG_SET, %ax
 	jne	.callexec
 	#
 	movq	MAIN_OFFSET_NUM_TOKENS(%rbp), %rdi
 	movq	MAIN_OFFSET_FILENAME(%rbp), %rsi
 	call	info
 .callexec:
-
+	movq	MAIN_OFFSET_NUM_TOKENS(%rbp), %rdi
+	xorq	%rsi, %rsi
+	movw	MAIN_OFFSET_S_FLAG(%rbp), %si
+	call	exec
 ._fini:
 	#
 	# unmap syscall
