@@ -38,19 +38,12 @@
 	movq	%rax, LEXER_OFFSET_CUR_TOKEN(%rbp)
 .endm
 
-# ---------------------------------
-# gets the token at `rdi` position
-# sets the token in rax
-# ---------------------------------
-.macro get_token	
-	movq	%rdi, %rax
-	movq	$GLOBL_TOKEN_SIZE, %rbx
-	mulq	%rbx
-	movq	%rax, %rcx
-	leaq	TOKENS(%rip), %rax
-	addq	%rcx, %rax
-.endm
-
+# ----------------------------------
+# rdi: source code
+# rsi: source code length
+#
+# rax: number of tokens generated
+# ----------------------------------
 .globl lexer
 lexer:
 	pushq	%rbp
@@ -103,7 +96,6 @@ lexer:
 	cmpb	$GLOBL_TOKEN_RIG, %dil
 	je	.loop_pair_right_brace
 	jmp	.loop_optmz
-
 .loop_pair_right_brace:
 	movq	LEXER_OFFSET_STACK_COUNT(%rbp), %rcx
 	cmpq	$0, %rcx
@@ -162,6 +154,7 @@ lexer:
 	incq	LEXER_OFFSET_COUNT(%rbp)
 	jmp	.loop
 .fini:
+	movq	LEXER_OFFSET_TOKEN_COUNT(%rbp), %rax
 	leave
 	ret
 ._fatal_tokensovrflw:

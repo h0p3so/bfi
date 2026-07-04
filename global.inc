@@ -2,7 +2,7 @@
 #define STDOUT_FD 1
 #define STDERR_FD 2
 
-#define EXIT_STATUS_USAGE    0
+#define EXIT_STATUS_OK       0
 #define EXIT_STATUS_BAD_FILE 1
 #define EXIT_STATUS_BAD_MEMO 2
 #define EXIT_STATUS_BAD_READ 3
@@ -41,5 +41,16 @@
 	syscall
 .endm
 
+# ---------------------------------
+# gets the token at `rdi` position
+# sets the token in rax
+# ---------------------------------
+.macro GET_TOKEN
+	movq	%rdi, %rax
+	movq	$GLOBL_TOKEN_SIZE, %rbx
+	mulq	%rbx
+	movq	%rax, %rcx
+	leaq	TOKENS(%rip), %rax
+	addq	%rcx, %rax
+.endm
 
-#.fatal_unopened_fmt: .string "bfi:lexer: cannot pair `]` (at %>3d:%d)\n"
