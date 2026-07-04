@@ -148,6 +148,8 @@ _start:
 	movq	MAIN_OFFSET_BF_SRC(%rbp), %rdi
 	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rsi
 	call	lexer
+
+
 	movq	%rax, MAIN_OFFSET_NUM_TOKENS(%rbp)
 	#
 	xorq	%rax, %rax

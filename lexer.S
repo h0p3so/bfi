@@ -88,7 +88,7 @@ lexer:
 	movq	LEXER_OFFSET_CUR_TOKEN(%rbp), %rax          #
 	movl	%r8d, GLOBL_TOK_OFF_NUMLINE(%rax)           #
 	movl	%r9d, GLOBL_TOK_OFF_LINEOFF(%rax)           #
-	movl	$0,   GLOBL_TOK_OFF_AUX(%rax)               #
+	movl	$1,   GLOBL_TOK_OFF_AUX(%rax)               #
 	movb	%dil, GLOBL_TOK_OFF_TYPE(%rax)              #
 	# --------------------------------------------------#
 	cmpb	$GLOBL_TOKEN_LEF, %dil
@@ -105,7 +105,7 @@ lexer:
 	#
 	leaq	.index_stack(%rip), %rax
 	movq	(%rax, %rcx, 8), %rdi
-	get_token
+	GET_TOKEN
 	#
 	# r8 will contain the index of `[` token within the
 	# token array, and the current index will be set to
@@ -115,7 +115,7 @@ lexer:
 	movq	LEXER_OFFSET_STACK_COUNT(%rbp), %rdi
 	movl	%edi, GLOBL_TOK_OFF_AUX(%rax)
 	#
-	get_token
+	GET_TOKEN
 	#
 	# pairing `]` with `[`
 	#
@@ -140,9 +140,13 @@ lexer:
 .loop_optmz:
 	cmpb	LEXER_OFFSET_LAST_TYPE_SEEN(%rbp), %dil
 	jne	.loop_next_token
+	movq	LEXER_OFFSET_TOKEN_COUNT(%rbp), %rdi
+	decq	%rdi
+	GET_TOKEN
 	incl	GLOBL_TOK_OFF_AUX(%rax)
 	jmp	.loop_advance
 .loop_next_token:
+	movb	%dil, LEXER_OFFSET_LAST_TYPE_SEEN(%rbp)
 	advance_next_token
 	jmp	.loop_advance
 .loop_newline:

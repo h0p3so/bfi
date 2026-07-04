@@ -39,7 +39,7 @@ info:
 	xorq	%rcx, %rcx
 	movl	GLOBL_TOK_OFF_AUX(%rax), %ecx
 	pushq	%rcx
-	movl	GLOBL_TOK_OFF_TYPE(%rax), %ecx
+	movb	GLOBL_TOK_OFF_TYPE(%rax), %cl
 	pushq	%rcx
 	#
 	movq	$STDOUT_FD, %rdi
