@@ -1,17 +1,20 @@
 #define MAIN_OFFSET_O_FLAG    -2
 #define MAIN_OFFSET_W_FLAG    -4
-#define MAIN_OFFSET_FILENAME -12
-#define MAIN_OFFSET_FILE_FD  -16
-#define MAIN_OFFSET_FILE_SZ  -24
-#define MAIN_OFFSET_BF_SRC   -32
+#define MAIN_OFFSET_I_FLAG    -6
+#define MAIN_OFFSET_C_FLAG    -8
+#define MAIN_OFFSET_FILENAME -16
+#define MAIN_OFFSET_FILE_FD  -20
+#define MAIN_OFFSET_FILE_SZ  -28
+#define MAIN_OFFSET_BF_SRC   -36
 
-#define FLAG_HELP            'H'
 #define FLAG_OPTIMIZE        'O'
 #define FLAG_WRAP            'W'
+#define FLAG_INFO            'I'
+#define FLAG_C_SRC_CODE      'C'
 
 .section .rodata
-	.usage_msg: .string "$ bfi [filename] [opts: O (optimize) | W (wrap memory) | H (help)]\n"
-	.usage_len: .quad   67
+	.usage_msg: .string "$ bfi [empty] | <filename> [exclusive opts: O (optimize) | W (wrap memory) | I (info) | C (c source code)]\n"
+	.usage_len: .quad   107
 
 	.fatal_bad_file_msg: .string "bfi: file provided does not exist\n"
 	.fatal_bad_file_len: .quad   34
@@ -45,18 +48,28 @@ _start:
 	jae	.init
 	movq	16(%rbp, %r8, 8), %rax
 	movzbl	(%rax), %edi
-	cmpb	$FLAG_HELP, %dil
-	je	._usage
+	#
 	cmpb	$FLAG_OPTIMIZE, %dil
 	je	.cli_parsing_O
 	cmpb	$FLAG_WRAP, %dil
 	je	.cli_parsing_W
+	cmpb	$FLAG_INFO, %dil
+	je	.cli_parsing_I
+	cmpb	$FLAG_C_SRC_CODE, %dil
+	je	.cli_parsing_C
+	#
 	jmp	.cli_parsing_loop
 .cli_parsing_O:
 	movw	$1, MAIN_OFFSET_O_FLAG(%rbp)
 	jmp	.cli_parsing_loop
-.cli_parsing_W:	
+.cli_parsing_W:
 	movw	$1, MAIN_OFFSET_W_FLAG(%rbp)
+	jmp	.cli_parsing_loop
+.cli_parsing_I:
+	movw	$1, MAIN_OFFSET_I_FLAG(%rbp)
+	jmp	.cli_parsing_loop
+.cli_parsing_C:
+	movw	$1, MAIN_OFFSET_C_FLAG(%rbp)
 	jmp	.cli_parsing_loop
 .cli_parsing_loop:
 	incq	%r8
