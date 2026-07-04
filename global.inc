@@ -41,3 +41,5 @@
 	syscall
 .endm
 
+
+#.fatal_unopened_fmt: .string "bfi:lexer: cannot pair `]` (at %>3d:%d)\n"

@@ -21,6 +21,8 @@
 	.fatal_stk_ovrflw_msg: .string "bfi:lexer: max stack capacity reached\n"
 	.fatal_stk_ovrflw_len: .quad   38
 
+	.fatal_unopened_fmt: .string "bfi:lexer: cannot pair `]` (at %>3d:%d)\n"
+
 #include "global.inc"
 
 .section .text
@@ -102,10 +104,6 @@ lexer:
 	je	.loop_pair_right_brace
 	jmp	.loop_optmz
 
-
-
-
-
 .loop_pair_right_brace:
 	movq	LEXER_OFFSET_STACK_COUNT(%rbp), %rcx
 	cmpq	$0, %rcx
@@ -157,7 +155,7 @@ lexer:
 	jmp	.loop_advance
 .loop_newline:
 	incl	LEXER_OFFSET_NUMLINE(%rbp)
-	movq	$0, LEXER_OFFSET_LINEOFFSET(%rbp)
+	movl	$-1, LEXER_OFFSET_LINEOFFSET(%rbp)
 	jmp	.loop_advance
 .loop_advance:
 	incl	LEXER_OFFSET_LINEOFFSET(%rbp)
@@ -172,8 +170,18 @@ lexer:
 ._fatal_stackovrflw:
 	DISPLAY STDERR_FD, .fatal_stk_ovrflw_msg(%rip), .fatal_stk_ovrflw_len(%rip)
 	EXIT EXIT_STATUS_S_OVERFL
-
 ._fatal_unopened:
+	movq	$STDERR_FD, %rdi
+	leaq	.fatal_unopened_fmt(%rip), %rsi
+	#
+	xorq	%rcx, %rcx
+	movl	GLOBL_TOK_OFF_LINEOFF(%rax), %ecx
+	pushq	%rcx
+	movl	GLOBL_TOK_OFF_NUMLINE(%rax), %ecx
+	pushq	%rcx
+	#
+	call	tiny_pf
+	addq	$16, %rsp
 	EXIT EXIT_STATUS_UNOPENED
 
 ._is_token:
