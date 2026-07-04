@@ -1,6 +1,3 @@
-#define EXEC_TOTAL_TOKENS 1024
-#define EXEC_TOKEN_SIZE   18
-
 /* struct token {
  *     int numline;      0(%reg)
  *     int lineoffset;   4(%reg)
@@ -9,7 +6,9 @@
  * }
  */
 
+#include "global.inc"
+
 .section .bss
-	TOKENS: .zero EXEC_TOTAL_TOKENS * EXEC_TOKEN_SIZE
+	TOKENS: .zero GLOBL_TOTAL_TOKENS * GLOBL_TOKEN_SIZE
 
 	.globl TOKENS

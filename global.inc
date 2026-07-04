@@ -1,3 +1,13 @@
+#define STDIN_FD  0
+#define STDOUT_FD 1
+#define STDERR_FD 2
+
+#define EXIT_STATUS_USAGE    0
+#define EXIT_STATUS_BAD_FILE 1
+#define EXIT_STATUS_BAD_MEMO 2
+#define EXIT_STATUS_BAD_READ 3
+#define EXIT_STATUS_OVERFLOW 4
+
 #define GLOBL_TOKEN_ADD '+'
 #define GLOBL_TOKEN_SUB '-'
 #define GLOBL_TOKEN_OUT '.'
@@ -11,3 +21,21 @@
 #define GLOBL_TOK_OFF_LINEOFF 4
 #define GLOBL_TOK_OFF_AUX     8
 #define GLOBL_TOK_OFF_TYPE    12
+
+#define GLOBL_TOTAL_TOKENS 1024
+#define GLOBL_TOKEN_SIZE   18
+
+.macro DISPLAY fd, msg, len
+	movq	$1, %rax
+	movq	$2, %rdi
+	leaq	\msg, %rsi
+	movq	\len, %rdx
+	syscall
+.endm
+
+.macro EXIT status
+	movq	$60, %rax
+	movq	$\status, %rdi
+	syscall
+.endm
+

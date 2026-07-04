@@ -1,12 +1,3 @@
-#define STDIN_FD  0
-#define STDOUT_FD 1
-#define STDERR_FD 2
-
-#define EXIT_STATUS_USAGE    0
-#define EXIT_STATUS_BAD_FILE 1
-#define EXIT_STATUS_BAD_MEMO 2
-#define EXIT_STATUS_BAD_READ 3
-
 #define MAIN_OFFSET_O_FLAG    -2
 #define MAIN_OFFSET_W_FLAG    -4
 #define MAIN_OFFSET_FILENAME -12
@@ -34,19 +25,7 @@
 .section .text
 .globl _start
 
-.macro DISPLAY fd, msg, len
-	movq	$1, %rax
-	movq	$2, %rdi
-	leaq	\msg, %rsi
-	movq	\len, %rdx
-	syscall
-.endm
-
-.macro EXIT status
-	movq	$60, %rax
-	movq	$\status, %rdi
-	syscall
-.endm
+#include "global.inc"
 
 _start:
 	pushq	%rbp
