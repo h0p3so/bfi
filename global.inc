@@ -9,6 +9,8 @@
 #define EXIT_STATUS_T_OVERFL 4
 #define EXIT_STATUS_S_OVERFL 5
 #define EXIT_STATUS_UNOPENED 6
+#define EXIT_STATUS_UNCLOSED 7
+
 
 #define GLOBL_TOKEN_ADD '+'
 #define GLOBL_TOKEN_SUB '-'
@@ -19,6 +21,13 @@
 #define GLOBL_TOKEN_NXT '>'
 #define GLOBL_TOKEN_PRV '<'
 
+/* struct token {
+ *     int numline;      0(%reg)
+ *     int lineoffset;   4(%reg)
+ *     int aux;          8(%reg)
+ *     char type;        12(%reg)
+ * }
+ */
 #define GLOBL_TOK_OFF_NUMLINE 0
 #define GLOBL_TOK_OFF_LINEOFF 4
 #define GLOBL_TOK_OFF_AUX     8

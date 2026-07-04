@@ -1,23 +1,21 @@
-#define MAIN_OFFSET_O_FLAG      -2
-#define MAIN_OFFSET_W_FLAG      -4
-#define MAIN_OFFSET_I_FLAG      -6
-#define MAIN_OFFSET_C_FLAG      -8
-#define MAIN_OFFSET_FILENAME   -16
-#define MAIN_OFFSET_FILE_FD    -20
-#define MAIN_OFFSET_FILE_SZ    -28
-#define MAIN_OFFSET_BF_SRC     -36
-#define MAIN_OFFSET_NUM_TOKENS -44
+#define MAIN_OFFSET_S_FLAG        -2
+#define MAIN_OFFSET_W_FLAG        -4
+#define MAIN_OFFSET_I_FLAG        -6
+#define MAIN_OFFSET_FILENAME     -14
+#define MAIN_OFFSET_FILE_FD      -18
+#define MAIN_OFFSET_FILE_SZ      -26
+#define MAIN_OFFSET_BF_SRC       -34
+#define MAIN_OFFSET_NUM_TOKENS   -42
 
-#define FLAG_OPTIMIZE        'O'
-#define FLAG_WRAP            'W'
-#define FLAG_INFO            'I'
-#define FLAG_C_SRC_CODE      'C'
+#define FLAG_SAFE                'S'
+#define FLAG_WRAP                'W'
+#define FLAG_INFO                'I'
 
-#define FLAG_SET             1
+#define FLAG_SET                 1
 
 .section .rodata
-	.usage_msg: .string "$ bfi [empty] | <filename> [exclusive opts: O (optimize) | W (wrap memory) | I (info) | C (c source code)]\n"
-	.usage_len: .quad   107
+	.usage_msg: .string "$ bfi [empty] | <filename> [exclusive opts: W (wrap memory) | I (info) | S (safe)\n"
+	.usage_len: .quad   82
 
 	.fatal_bad_file_msg: .string "bfi: file provided does not exist\n"
 	.fatal_bad_file_len: .quad   34
@@ -52,18 +50,13 @@ _start:
 	movq	16(%rbp, %r8, 8), %rax
 	movzbl	(%rax), %edi
 	#
-	cmpb	$FLAG_OPTIMIZE, %dil
-	je	.cli_parsing_O
 	cmpb	$FLAG_WRAP, %dil
 	je	.cli_parsing_W
 	cmpb	$FLAG_INFO, %dil
 	je	.cli_parsing_I
-	cmpb	$FLAG_C_SRC_CODE, %dil
-	je	.cli_parsing_C
+	cmpb	$FLAG_SAFE, %dil
+	je	.cli_parsing_S
 	#
-	jmp	.cli_parsing_loop
-.cli_parsing_O:
-	movw	$FLAG_SET, MAIN_OFFSET_O_FLAG(%rbp)
 	jmp	.cli_parsing_loop
 .cli_parsing_W:
 	movw	$FLAG_SET, MAIN_OFFSET_W_FLAG(%rbp)
@@ -71,8 +64,8 @@ _start:
 .cli_parsing_I:
 	movw	$FLAG_SET, MAIN_OFFSET_I_FLAG(%rbp)
 	jmp	.cli_parsing_loop
-.cli_parsing_C:
-	movw	$FLAG_SET, MAIN_OFFSET_C_FLAG(%rbp)
+.cli_parsing_S:
+	movw	$FLAG_SET, MAIN_OFFSET_S_FLAG(%rbp)
 	jmp	.cli_parsing_loop
 .cli_parsing_loop:
 	incq	%r8
@@ -148,8 +141,6 @@ _start:
 	movq	MAIN_OFFSET_BF_SRC(%rbp), %rdi
 	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rsi
 	call	lexer
-
-
 	movq	%rax, MAIN_OFFSET_NUM_TOKENS(%rbp)
 	#
 	xorq	%rax, %rax
@@ -161,7 +152,6 @@ _start:
 	movq	MAIN_OFFSET_FILENAME(%rbp), %rsi
 	call	info
 .callexec:
-
 
 ._fini:
 	#

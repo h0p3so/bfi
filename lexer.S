@@ -7,6 +7,7 @@
 #define LEXER_OFFSET_TOKEN_COUNT    -48
 #define LEXER_OFFSET_LAST_TYPE_SEEN -50
 #define LEXER_OFFSET_STACK_COUNT    -58
+#define LEXER_OFFSET_LAST_OP_SEEN   -66
 
 #define LEXER_INDEX_STACK_CAP       256
 #define LEXER_INDEX_STACK_MEMB_SZ   8
@@ -20,6 +21,9 @@
 
 	.fatal_stk_ovrflw_msg: .string "bfi:lexer: max stack capacity reached\n"
 	.fatal_stk_ovrflw_len: .quad   38
+
+	.fatal_unclosed_msg: .string "bfi:lexer: unclosed bracked (`[`)\n"
+	.fatal_unclosed_len: .quad   34
 
 	.fatal_unopened_fmt: .string "bfi:lexer: cannot pair `]` (at %>3d:%d)\n"
 
@@ -158,6 +162,9 @@ lexer:
 	incq	LEXER_OFFSET_COUNT(%rbp)
 	jmp	.loop
 .fini:
+	movq	LEXER_OFFSET_STACK_COUNT(%rbp), %rax
+	cmpq	$0, %rax
+	jne	._fatal_unclosed
 	movq	LEXER_OFFSET_TOKEN_COUNT(%rbp), %rax
 	leave
 	ret
@@ -180,6 +187,9 @@ lexer:
 	call	tiny_pf
 	addq	$16, %rsp
 	EXIT EXIT_STATUS_UNOPENED
+._fatal_unclosed:
+	DISPLAY STDERR_FD, .fatal_unclosed_msg(%rip), .fatal_unclosed_len(%rip)
+	EXIT EXIT_STATUS_S_OVERFL
 
 ._is_token:
 	movq	$1, %rax
