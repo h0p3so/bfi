@@ -1,5 +1,5 @@
 
-	bfi: tiny brainfuck interpreter for x86_64 linux
+	bfi: full brainfuck interpreter for x86_64 linux
 
 USAGE
 	$ bfi [empty] | <filename> [exclusive opts: I (info) | S (safe)
@@ -7,8 +7,8 @@ USAGE
 	Without arguments, prints the usage message and exits.
 
 	<filename>         path to a brainfuck source file
-	I                  info mode — prints token debug information (see INFO MODE)
-	S                  safe mode — reserved, not yet implemented (see SAFE MODE)
+	I                  info mode - prints token debug information (see INFO MODE)
+	S                  safe mode - reserved, not yet implemented (see SAFE MODE)
 
 	Flags are parsed by looking at the first character of each argv entry
 	after the program name. The first non-flag argument is the filename.
@@ -83,14 +83,14 @@ SAFE MODE
 ERRORS
 	All error messages are written to stderr (fd 2) followed by exit(status).
 
-		"bfi: file provided does not exist"        — access() failed
-		"bfi: cannot allocate space"               — mmap failed
-		"bfi: error while reading"                 — read() failed
-		"bfi:lexer: max token capacity reached"    — >= 65 536 tokens
-		"bfi:lexer: max stack capacity reached"    — bracket nesting ≥ 256
-		"bfi:lexer: cannot pair `]` (at line:col)" — unmatched `]`
-		"bfi:lexer: unclosed bracked (`[`)"        — unmatched `[`
-		"bfi:exec: unreachable, please report!"    — unknown token type
+		"bfi: file provided does not exist"        - access() failed
+		"bfi: cannot allocate space"               - mmap failed
+		"bfi: error while reading"                 - read() failed
+		"bfi:lexer: max token capacity reached"    - >= 65 536 tokens
+		"bfi:lexer: max stack capacity reached"    - bracket nesting ≥ 256
+		"bfi:lexer: cannot pair `]` (at line:col)" - unmatched `]`
+		"bfi:lexer: unclosed bracked (`[`)"        - unmatched `[`
+		"bfi:exec: unreachable, please report!"    - unknown token type
 
 BUILD
 	$ make
