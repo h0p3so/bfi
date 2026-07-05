@@ -103,6 +103,7 @@ lexer:
 	movq	LEXER_OFFSET_STACK_COUNT(%rbp), %rcx
 	cmpq	$0, %rcx
 	je	._fatal_unopened
+	movb	%dil, %r9b
 	#
 	# getting index of `[` pair token
 	#
@@ -126,6 +127,7 @@ lexer:
 	movl	%r8d, GLOBL_TOK_OFF_AUX(%rax)
 	#
 	decq	LEXER_OFFSET_STACK_COUNT(%rbp)
+	movb	%r9b, %dil
 	jmp	.loop_next_token
 .loop_mark_and_continue:
 	movq	LEXER_OFFSET_STACK_COUNT(%rbp), %rcx
@@ -151,6 +153,8 @@ lexer:
 	incl	GLOBL_TOK_OFF_AUX(%rax)
 	jmp	.loop_advance
 .loop_next_token:
+	movq	LEXER_OFFSET_CUR_TOKEN(%rbp), %rax
+	movb	GLOBL_TOK_OFF_TYPE(%rax), %dil
 	movb	%dil, LEXER_OFFSET_LAST_TYPE_SEEN(%rbp)
 	advance_next_token
 	jmp	.loop_advance

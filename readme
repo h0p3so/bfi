@@ -1,3 +1,106 @@
+
+	bfi: tiny brainfuck interpreter for x86_64 linux
+
+USAGE
+	$ bfi [empty] | <filename> [exclusive opts: I (info) | S (safe)
+
+	Without arguments, prints the usage message and exits.
+
+	<filename>         path to a brainfuck source file
+	I                  info mode — prints token debug information (see INFO MODE)
+	S                  safe mode — reserved, not yet implemented (see SAFE MODE)
+
+	Flags are parsed by looking at the first character of each argv entry
+	after the program name. The first non-flag argument is the filename.
+
+	The file is opened, its size is obtained via lseek, then it is mmap'd
+	into memory and read with syscall read (0).
+
+LEXER
+	The lexer walks the source byte-by-byte, recognising the eight brainfuck
+	commands `+ - . , [ ] > <`. Every other byte (including newlines and
+	non-command characters) is ignored.
+
+	Each recognised command becomes a token:
+
+		struct token {
+			int  numline;     1-based line number
+			int  lineoffset;  0-based column offset within the line
+			int  aux;         see below
+			char type;        one of the eight BF command characters
+		};
+
+	Token optimisation: when two consecutive tokens share the same `type`,
+	the lexer does not create a new token. Instead it increments the first
+	token's `aux` counter. A block like `++++` therefore produces a single
+	token with `type '+'` and `aux = 4`. This reduces the token count for
+	sequential runs of the same instruction.
+
+	Bracket pairing: when `[` is encountered, the token's index is pushed
+	onto an internal index stack. When `]` is found, the matching `[` is
+	popped and each token stores the other's index in its `aux` field. This
+	gives the executor O(1) bracket matching.
+
+	Limits:
+		* Maximum tokens:    65 536 (GLOBL_TOTAL_TOKENS)
+		* Maximum nesting:      256 (LEXER_INDEX_STACK_CAP)
+
+EXECUTOR
+	The executor runs the tokenised program on a 30 000-byte tape (the
+	classic brainfuck memory size). The tape is in .bss and is zeroed
+	at program start.
+
+		+  adds aux to the current cell
+		-  subtracts aux from the current cell
+		>  moves the pointer forward by aux cells
+		<  moves the pointer backward by aux cells
+		.  writes the current cell to stdout (aux determines count)
+		,  reads one byte from stdin into the current cell (aux determines count)
+		[  jumps to the matching `]` if the current cell is zero
+		]  jumps to the matching `[` if the current cell is non-zero
+
+	Because adjacent same-type tokens are merged during lexing, a run of
+	`++++` executes as a single `add aux=4` rather than four separate
+	`add aux=1` instructions.
+
+INFO MODE
+	When the `I` flag is given, the program prints a token dump to stdout
+	and then exits without executing. The output includes the source
+	filename and, for each token, its index, command character, and aux
+	value.
+
+		bfi: `source.b` source code
+			0 token: <+:   4>
+			1 token: <->   1>
+			...
+
+SAFE MODE
+	Safe mode is not implemented because virtually no brainfuck programs
+	depend on out-of-bounds behaviour and the performance cost of checks
+	on every instruction is significant. It remains a worthwhile feature
+	for a future revision.
+
+ERRORS
+	All error messages are written to stderr (fd 2) followed by exit(status).
+
+		"bfi: file provided does not exist"        — access() failed
+		"bfi: cannot allocate space"               — mmap failed
+		"bfi: error while reading"                 — read() failed
+		"bfi:lexer: max token capacity reached"    — >= 65 536 tokens
+		"bfi:lexer: max stack capacity reached"    — bracket nesting ≥ 256
+		"bfi:lexer: cannot pair `]` (at line:col)" — unmatched `]`
+		"bfi:lexer: unclosed bracked (`[`)"        — unmatched `[`
+		"bfi:exec: unreachable, please report!"    — unknown token type
+
+BUILD
+	$ make
+
+	Requires `gcc` (used as the linker driver with `-nostartfiles`) and the
+	`tiny-pf` / `xvargs` libraries bundled under `libs/`. No other system
+	dependencies.
+
+	$ make clean
+
 TODO
 	[x] usage
 	[x] read file
@@ -5,4 +108,5 @@ TODO
 	[x] info (I)
 	[x] exec
 	[ ] safe mode
-	[x] testing
+	[x] testing (20 programs in programs/)
+
