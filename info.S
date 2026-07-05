@@ -4,7 +4,10 @@
 
 .section .rodata
 	.info_fmt: .string "bfi: `%s` source code\n"
-	.info_token_fmt: .string "token: <%c:%>4d>\n"
+	.info_token_fmt: .string "%>10d token: <%c:%>4d>\n"
+
+	.msg: .string "hola\n"
+	.len: .quad 5
 
 .section .text
 
@@ -34,14 +37,13 @@ info:
 	movq	INFO_OFFSET_TOK_COUNT(%rbp), %rdi
 	cmpq	INFO_OFFSET_TOK_MAX(%rbp), %rdi
 	jae	.fini
-	#
 	GET_TOKEN
 	xorq	%rcx, %rcx
 	movl	GLOBL_TOK_OFF_AUX(%rax), %ecx
 	pushq	%rcx
 	movb	GLOBL_TOK_OFF_TYPE(%rax), %cl
 	pushq	%rcx
-	#
+	pushq	%rdi
 	movq	$STDOUT_FD, %rdi
 	leaq	.info_token_fmt(%rip), %rsi
 	call	tiny_pf

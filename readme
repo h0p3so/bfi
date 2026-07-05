@@ -3,7 +3,6 @@ TODO
 	[x] read file
 	[x] lexer
 	[x] info (I)
-	[ ] safe (S)
-	[ ] exec
-	[ ] wrap (W)
-	[ ] testing
+	[x] exec
+	[ ] safe mode
+	[x] testing

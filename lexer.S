@@ -7,7 +7,6 @@
 #define LEXER_OFFSET_TOKEN_COUNT    -48
 #define LEXER_OFFSET_LAST_TYPE_SEEN -50
 #define LEXER_OFFSET_STACK_COUNT    -58
-#define LEXER_OFFSET_LAST_OP_SEEN   -66
 
 #define LEXER_INDEX_STACK_CAP       256
 #define LEXER_INDEX_STACK_MEMB_SZ   8
@@ -108,6 +107,7 @@ lexer:
 	# getting index of `[` pair token
 	#
 	leaq	.index_stack(%rip), %rax
+	decq	%rcx
 	movq	(%rax, %rcx, 8), %rdi
 	GET_TOKEN
 	#
@@ -116,7 +116,7 @@ lexer:
 	# `[` to pair it with the current `]`
 	#
 	movl	GLOBL_TOK_OFF_AUX(%rax), %r8d
-	movq	LEXER_OFFSET_STACK_COUNT(%rbp), %rdi
+	movq	LEXER_OFFSET_TOKEN_COUNT(%rbp), %rdi
 	movl	%edi, GLOBL_TOK_OFF_AUX(%rax)
 	#
 	GET_TOKEN
@@ -135,10 +135,11 @@ lexer:
 	# aux will temporarily store its own index within the
 	# token array so when `]` is found they can exchange indexes
 	#
-	movl	%ecx, GLOBL_TOK_OFF_AUX(%rax)
+	movq	LEXER_OFFSET_TOKEN_COUNT(%rbp), %rbx
+	movl	%ebx, GLOBL_TOK_OFF_AUX(%rax)
 	#
 	leaq	.index_stack(%rip), %rax
-	movq	%rcx, (%rax, %rcx, 8)
+	movq	%rbx, (%rax, %rcx, 8)
 	incq	LEXER_OFFSET_STACK_COUNT(%rbp)
 	jmp	.loop_next_token
 .loop_optmz:

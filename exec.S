@@ -1,4 +1,4 @@
-#define EXEC_MEM_LENGTH 30000
+#define EXEC_MEM_LENGTH 30'000
 
 #define EXEC_OFFSET_MAX_TOKENS  -8
 #define EXEC_OFFSET_SAFE_FLAG   -10
@@ -33,11 +33,11 @@ exec:
 	movw	%si, EXEC_OFFSET_SAFE_FLAG(%rbp)
 	movq	$0, EXEC_OFFSET_CUR_TOKEN(%rbp)
 	leaq	.memory(%rip), %r8
+	xorq	%r10, %r10
 	#
 	cmpw	$GLOBL_FLAG_SET, %si
 	je	.safe_loop
 	#
-	xorq	%r10, %r10
 #   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-
 #  / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \
 # `-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'
@@ -102,8 +102,8 @@ exec:
 	xorq	%rax, %rax
 	movb	(%r8), %al
 	cmpb	$0, %al
-	ja	.next
-	movl	GLOBL_TOK_OFF_AUX(%r8), %eax
+	jne	.next
+	movl	GLOBL_TOK_OFF_AUX(%r9), %eax
 	cltq
 	movq	%rax, EXEC_OFFSET_CUR_TOKEN(%rbp)
 	jmp	.next
@@ -111,18 +111,18 @@ exec:
 	xorq	%rax, %rax
 	movb	(%r8), %al
 	cmpb	$0, %al
-	jbe	.next
-	movl	GLOBL_TOK_OFF_AUX(%r8), %eax
+	je	.next
+	movl	GLOBL_TOK_OFF_AUX(%r9), %eax
 	cltq
 	movq	%rax, EXEC_OFFSET_CUR_TOKEN(%rbp)
 	jmp	.next
 .nxt:
-	movl	GLOBL_TOK_OFF_AUX(%r9), %ebx
-	addq	%rbx, %r8
+	movl	GLOBL_TOK_OFF_AUX(%r9), %r10d
+	addq	%r10, %r8
 	jmp	.next
 .prv:
-	movl	GLOBL_TOK_OFF_AUX(%r9), %ebx
-	subq	%rbx, %r8
+	movl	GLOBL_TOK_OFF_AUX(%r9), %r10d
+	subq	%r10, %r8
 	jmp	.next
 .next:
 	xorq	%r10, %r10

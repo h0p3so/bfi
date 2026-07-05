@@ -102,26 +102,26 @@ _start:
 	#
 	xorq	%rdi, %rdi
 	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rsi
-	movq	$1, %rsi
 	movq	$3, %rdx
 	movq	$34, %r10
 	movq	$-1, %r8
 	xorq	%r9, %r9
 	movq	$9, %rax
 	syscall
-	cmpq	$-1, %rax
-	je	._fatal_bad_memo
+	testq	%rax, %rax
+	js	._fatal_bad_memo
 	movq	%rax, MAIN_OFFSET_BF_SRC(%rbp)
 	#
 	# read syscall
 	#
+	xorq	%rdi, %rdi
 	movl	MAIN_OFFSET_FILE_FD(%rbp), %edi
 	movq	MAIN_OFFSET_BF_SRC(%rbp), %rsi
 	movq	MAIN_OFFSET_FILE_SZ(%rbp), %rdx
 	xorq	%rax, %rax
 	syscall
-	cmpq	$-1, %rax
-	je	._fatal_bad_read
+	testq	%rax, %rax
+	js	._fatal_bad_read
 	#
 	# close syscall
 	#
