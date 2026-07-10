@@ -2,13 +2,12 @@
 	bfi: full brainfuck interpreter for x86_64 linux
 
 USAGE
-	$ bfi [empty] | <filename> [exclusive opts: I (info) | S (safe)
+	$ bfi [empty] | <filename> [exclusive opts: I (info)]
 
 	Without arguments, prints the usage message and exits.
 
 	<filename>         path to a brainfuck source file
 	I                  info mode - prints token debug information (see INFO MODE)
-	S                  safe mode - reserved, not yet implemented (see SAFE MODE)
 
 	Flags are parsed by looking at the first character of each argv entry
 	after the program name. The first non-flag argument is the filename.
@@ -74,12 +73,6 @@ INFO MODE
 			1 token: <->   1>
 			...
 
-SAFE MODE
-	Safe mode is not implemented because virtually no brainfuck programs
-	depend on out-of-bounds behaviour and the performance cost of checks
-	on every instruction is significant. It remains a worthwhile feature
-	for a future revision.
-
 ERRORS
 	All error messages are written to stderr (fd 2) followed by exit(status).
 
@@ -107,6 +100,5 @@ TODO
 	[x] lexer
 	[x] info (I)
 	[x] exec
-	[ ] safe mode
-	[x] testing (20 programs in programs/)
+	[x] testing (+20 programs https://brainfuck.org/)
 

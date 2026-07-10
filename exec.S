@@ -1,8 +1,7 @@
 #define EXEC_MEM_LENGTH 30'000
 
 #define EXEC_OFFSET_MAX_TOKENS  -8
-#define EXEC_OFFSET_SAFE_FLAG   -10
-#define EXEC_OFFSET_CUR_TOKEN   -18
+#define EXEC_OFFSET_CUR_TOKEN   -16
 
 #include "global.inc"
 
@@ -20,24 +19,18 @@
 .globl exec
 
 # rdi: number of tokens
-# rsi: is safe set?
 #
 # note: r8 register acts like the memory pointer
 #       r9 stores the current token
-#       r10: works as a counter for .out and .inp labels (also safe ones)
+#       r10: works as a counter for .out and .inp labels
 exec:
 	pushq	%rbp
 	movq	%rsp, %rbp
 	subq	$32, %rsp
 	movq	%rdi, EXEC_OFFSET_MAX_TOKENS(%rbp)
-	movw	%si, EXEC_OFFSET_SAFE_FLAG(%rbp)
 	movq	$0, EXEC_OFFSET_CUR_TOKEN(%rbp)
 	leaq	.memory(%rip), %r8
 	xorq	%r10, %r10
-	#
-	cmpw	$GLOBL_FLAG_SET, %si
-	je	.safe_loop
-	#
 #   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-
 #  / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \
 # `-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'
@@ -128,46 +121,6 @@ exec:
 	xorq	%r10, %r10
 	incq	EXEC_OFFSET_CUR_TOKEN(%rbp)
 	jmp	.loop
-#   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-
-#  / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \
-# `-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'
-.safe_loop:
-	movq	EXEC_OFFSET_CUR_TOKEN(%rbp), %rdi
-	cmpq	EXEC_OFFSET_MAX_TOKENS(%rbp), %rdi
-	jae	.fini
-	GET_TOKEN
-	xorq	%rdi, %rdi
-	movb	GLOBL_TOK_OFF_TYPE(%rax), %dil
-	#
-	cmpb	$GLOBL_TOKEN_ADD, %dil
-	je	.safe_add
-	cmpb	$GLOBL_TOKEN_SUB, %dil
-	je	.safe_sub
-	cmpb	$GLOBL_TOKEN_OUT, %dil
-	je	.safe_out
-	cmpb	$GLOBL_TOKEN_INP, %dil
-	je	.safe_inp
-	cmpb	$GLOBL_TOKEN_LEF, %dil
-	je	.safe_lef
-	cmpb	$GLOBL_TOKEN_RIG, %dil
-	je	.safe_rig
-	cmpb	$GLOBL_TOKEN_NXT, %dil
-	je	.safe_nxt
-	cmpb	$GLOBL_TOKEN_PRV, %dil
-	je	.safe_prv
-	#
-	jmp	._fatal_unreachable
-.safe_add:
-.safe_sub:
-.safe_out:
-.safe_inp:
-.safe_lef:
-.safe_rig:
-.safe_nxt:
-.safe_prv:
-#   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-.   .-.-
-#  / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \ \ / / \
-# `-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'   `-`-'
 .fini:
 	leave
 	ret

@@ -1,17 +1,15 @@
-#define MAIN_OFFSET_S_FLAG        -2
-#define MAIN_OFFSET_I_FLAG        -4
-#define MAIN_OFFSET_FILENAME     -12
-#define MAIN_OFFSET_FILE_FD      -16
-#define MAIN_OFFSET_FILE_SZ      -24
-#define MAIN_OFFSET_BF_SRC       -32
-#define MAIN_OFFSET_NUM_TOKENS   -40
+#define MAIN_OFFSET_I_FLAG        -2
+#define MAIN_OFFSET_FILENAME     -10
+#define MAIN_OFFSET_FILE_FD      -14
+#define MAIN_OFFSET_FILE_SZ      -22
+#define MAIN_OFFSET_BF_SRC       -30
+#define MAIN_OFFSET_NUM_TOKENS   -38
 
-#define FLAG_SAFE                'S'
 #define FLAG_INFO                'I'
 
 .section .rodata
-	.usage_msg: .string "$ bfi [empty] | <filename> [exclusive opts: I (info) | S (safe)\n"
-	.usage_len: .quad   82
+	.usage_msg: .string "$ bfi [empty] | <filename> [exclusive opts: I (info)]\n"
+	.usage_len: .quad   72
 
 	.fatal_bad_file_msg: .string "bfi: file provided does not exist\n"
 	.fatal_bad_file_len: .quad   34
@@ -48,15 +46,10 @@ _start:
 	#
 	cmpb	$FLAG_INFO, %dil
 	je	.cli_parsing_I
-	cmpb	$FLAG_SAFE, %dil
-	je	.cli_parsing_S
 	#
 	jmp	.cli_parsing_loop
 .cli_parsing_I:
 	movw	$GLOBL_FLAG_SET, MAIN_OFFSET_I_FLAG(%rbp)
-	jmp	.cli_parsing_loop
-.cli_parsing_S:
-	movw	$GLOBL_FLAG_SET, MAIN_OFFSET_S_FLAG(%rbp)
 	jmp	.cli_parsing_loop
 .cli_parsing_loop:
 	incq	%r8
@@ -144,8 +137,6 @@ _start:
 	call	info
 .callexec:
 	movq	MAIN_OFFSET_NUM_TOKENS(%rbp), %rdi
-	xorq	%rsi, %rsi
-	movw	MAIN_OFFSET_S_FLAG(%rbp), %si
 	call	exec
 ._fini:
 	#
