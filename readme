@@ -1,5 +1,5 @@
 
-	bfi: full brainfuck interpreter for x86_64 linux
+	bfi: brainfuck interpreter
 
 USAGE
 	$ bfi [empty] | <filename> [exclusive opts: I (info)]
