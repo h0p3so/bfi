@@ -1,10 +1,16 @@
+ifeq ($(and $(wildcard xvargs.S),$(wildcard tiny-pf.S)),)
+  $(error install dependencies or run the docker image)
+else
+endif
+
+
 CC = gcc
 CFLAGS = -c
 XVARGS_FLAGS =
 TINY_PF_FLAGS =
 LDFLAGS = -nostartfiles
 EXECUTABLE = bfi
-OBJS = bfi.o libs/tiny-pf.o libs/xvargs.o lexer.o exec.o info.o
+OBJS = bfi.o tiny-pf.o xvargs.o lexer.o exec.o info.o
 DEBUG = -g
 
 .PHONY: all clean
@@ -26,10 +32,10 @@ lexer.o: lexer.S
 bfi.o: bfi.S
 	$(CC) $(CFLAGS) $< -o $@ $(DEBUG)
 
-libs/xvargs.o: libs/xvargs.S
+xvargs.o: xvargs.S
 	$(CC) $(CFLAGS) $(XVARGS_FLAGS) $< -o $@
 
-libs/tiny-pf.o: libs/tiny-pf.S
+tiny-pf.o: tiny-pf.S
 	$(CC) $(CFLAGS) $(TINY_PF_FLAGS) $< -o $@
 
 clean:
