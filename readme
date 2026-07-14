@@ -86,13 +86,13 @@ ERRORS
 		"bfi:exec: unreachable, please report!"    - unknown token type
 
 BUILD
+	In order to build the interpreter, you either can use the Dockerimage or
+	bring xvargs.S and tiny-pf.S files to the root of the project and then
 	$ make
 
-	Requires `gcc` (used as the linker driver with `-nostartfiles`) and the
-	`tiny-pf` / `xvargs` libraries bundled under `libs/`. No other system
-	dependencies.
-
-	$ make clean
+	Docker is used since xvargs.S and tiny-pf.S are libraries
+	* xvargs : https://github.com/h0p3so/xvargs
+	* tiny-pf: https://github.com/h0p3so/tiny-pf
 
 TODO
 	[x] usage
